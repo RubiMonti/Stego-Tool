@@ -1,0 +1,6 @@
+moviepy==1.0.3
+opencv_python==4.7.0.72
+pycryptodome==3.17
+pydub==0.25.1
+argparse
+pathlib
