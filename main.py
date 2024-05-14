@@ -84,7 +84,6 @@ def encode_image(file, plaintext_password, message):
 		file = input("Introduce the file of the image (must be .png): ")
 	img = cv2.imread(file)
 	
-	# wW save the original image to use later
 	try:
 		orig_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 	except:
@@ -94,8 +93,6 @@ def encode_image(file, plaintext_password, message):
 
 	cv2.imwrite("./temp/img_bgr.png", orig_img)
 
-	# We try that the starting pixel is located somewhere randomly in the first
-	# quarter of the image
 	current_width = random.randrange(1, img.shape[0] // 2, 1)
 	current_height = random.randrange(1, img.shape[1] // 2, 1)
 	initial_pixel_num = (current_height * img.shape[1] + current_width)
@@ -103,17 +100,14 @@ def encode_image(file, plaintext_password, message):
 	while(plaintext_password == ''):
 		plaintext_password = input('Introduce the password to encode: ')
 
-	# We obtain the hashed password
 	password = hashlib.sha256(plaintext_password.encode("utf-8")).digest()
 
 	while(message == ''):
 		message = input('Introduce the message to be encoded: ')
 
-	# We encrypt the message
 	cipher = AES.new(password, AES.MODE_EAX)
 	nonce = cipher.nonce
 	ciphertext, tag = cipher.encrypt_and_digest(message.encode("utf-8"))
-	# Then we create the final message with all fields
 	message = base64.b64encode(nonce).decode("utf-8")
 	message += base64.b64encode(tag).decode("utf-8")
 	message += base64.b64encode(ciphertext).decode("utf-8")
@@ -151,54 +145,38 @@ def encode_audio(audio_filename, number):
 
 	file = AudioSegment.from_wav(audio_filename)
 
-	# Randomize the range that we will use
 	random_range = random.randint(0, len(ranges)-1)
 	length = len(str(number))
 	final_audio = AudioSegment.silent(duration=length*5)
 	streak = 1
 	index = 0
-	# Iterate over the binary number
 	for i in range(length):
 		if index >= length:
 			break
-		# Select each bit and depending on the value
-		# we will add a silence or a noise
-		# 0 -> silence
-		# 1 -> noise
-		# Also check if the next value is the same
-		# if it is, we will add the value
 		if number[index] == '0':
 			index += 1
 		else:
-		   # Check if the next values are the same
 			for j in range(index+1, length):
 				if number[j] == '1':
 					streak += 1
 				else:
-					break
-			# Add noise
-			# The k value, it's the position (k*5) where we will add the noise
-			# The streak value is the duration of the noise			 
+					break	 
 			start = index*5
 			noise = WhiteNoise().to_audio_segment(duration=streak*5)
-			# Change the volume of the noise
 			change_in_dBFS = - 60 - noise.dBFS
 			final = noise.apply_gain(change_in_dBFS)
 			final_audio = final_audio.overlay(final, position=start)
 			index += streak
 			streak = 1
 
-	# Export the audio file
 	aux_filename = audio_filename.replace("_edited", "_aux")
 	final_audio.export(aux_filename, format="wav")
 
 	start = ranges[random_range][0]
 	ranges = detect_silence(final_audio, 5, -69.0)	
 	
-	# We need to import the audio again, due to some errors
 	audio_edited = AudioSegment.from_wav(audio_filename)
 	
-	# Split the audio file in 2 parts, adding the secret in the middle
 	audio_start:AudioSegment = audio_edited[:start]
 	audio_end:AudioSegment = audio_edited[(start+40+final_audio.duration_seconds*1000):]
 	audio_final = audio_start + AudioSegment.silent(duration=20) + final_audio + AudioSegment.silent(duration=20) + audio_end
@@ -214,9 +192,7 @@ def create_video(image_filename, audio_filename, video_filename, mode):
 
 	original_image = image_filename.replace("_stego", "_bgr")
 
-	# create the audio clip object
 	audio_clip = AudioFileClip(audio_filename)
-	# create the image clip object
 	clip1 =  ImageClip(original_image).set_duration((audio_clip.duration + 1) // 10)
 	clip2 =  ImageClip(image_filename).set_duration(1)
 	clip3 =  ImageClip(original_image).set_duration(audio_clip.duration - ((audio_clip.duration + 1) // 10) - 1)
@@ -225,7 +201,6 @@ def create_video(image_filename, audio_filename, video_filename, mode):
 	video_clip = video_clip.set_audio(audio_clip)
 	video_clip.duration = audio_clip.duration
 	video_clip.fps = 1
-	# export the video (in rawvideo format)
 	video_clip.write_videofile(video_filename, codec="rawvideo", audio_codec="pcm_s16le", audio_fps=48000, audio_bitrate="768k", ffmpeg_params=["-ac", "1"])
 
 	print("INFO: The video with the hidden message has been created in: " + video_filename)
