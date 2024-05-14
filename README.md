@@ -19,10 +19,10 @@ When inputted this files into the program, we will be asked for a password to en
 ### Examples:
 For encoding a message into a video
 ```bash
-python3 main.py -e -i \<IMAGE\> -a \<AUDIO\> -v \<OUTPUT VIDEO NAME\> 
+python3 main.py -e -i <IMAGE> -a <AUDIO> -v <OUTPUT VIDEO NAME> 
 ```
 
 For decoding the video
 ```bash
-python3 main.py -d -i \<IMAGE\> -a \<AUDIO\> -v \<OUTPUT VIDEO NAME\> 
+python3 main.py -d -i <IMAGE> -a <AUDIO> -v <OUTPUT VIDEO NAME> 
 ```
