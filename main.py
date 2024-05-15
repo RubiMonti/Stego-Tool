@@ -10,6 +10,7 @@ from pydub.silence import detect_silence
 from pydub.generators import WhiteNoise
 from moviepy.editor import AudioFileClip, ImageClip, concatenate_videoclips, CompositeVideoClip, VideoFileClip
 from shutil import rmtree
+import traceback
 
 # Function to check if the file extension is the correct one
 def check_extension(file, file_type):
@@ -185,7 +186,7 @@ def encode_audio(audio_filename, number):
 	
 	return out_filename
 
-def create_video(image_filename, audio_filename, video_filename, mode):	
+def create_video(image_filename, audio_filename, video_filename):	
 	while(check_extension(video_filename, 'video') == False):
 		print("ERROR: The filename is not correct. The video must be .avi!")
 		video_filename = input("Introduce the filename of the output video: ")
@@ -351,7 +352,7 @@ def main():
 			encoded_audio_filename = encode_audio(input_audio, initial_pixel)
 
 			video_filename = args.video if args.video else ''
-			create_video(encoded_image_filename, encoded_audio_filename, video_filename, args.mode)
+			create_video(encoded_image_filename, encoded_audio_filename, video_filename)
 			rmtree("./temp")
 		elif(args.decode):
 			os.makedirs("./temp",exist_ok=True)
@@ -369,6 +370,7 @@ def main():
 			rmtree("./temp")
 	except Exception as e:
 		print("ERROR: Something went wrong!")
+		traceback.print_exc()
 		rmtree("./temp")
 
 if __name__ == "__main__":
